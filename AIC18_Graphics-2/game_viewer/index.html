@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta name='viewport'
+          content='width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no'/>
+    <meta charset='utf-8'>
+    <link rel="manifest" href="manifest.json">
+    <title>AIC2018 : The Land of Three Suns</title>
+    <script src="playcanvas-stable.min.js"></script>
+    <link rel="stylesheet" href="/static/semantic/semantic.rtl.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/semantic/semantic.min.js"></script>
+    <script src="/static/js/scripts.js"></script>
+
+    <script>
+        ASSET_PREFIX = "";
+        SCRIPT_PREFIX = "";
+        SCENE_PATH = "583553.json";
+        CONTEXT_OPTIONS = {
+            'antialias': true,
+            'alpha': false,
+            'preserveDrawingBuffer': false,
+            'preferWebGl2': true
+        };
+        SCRIPTS = [10601749, 10656946, 10710434, 10765317, 10769425, 10848168, 10921203, 10848177, 10849400, 10859904, 10873011, 10915806, 10635897, 10916317, 10919089, 10916784, 10873274, 10929959, 10934265, 10937718, 10958743, 10975148, 10976542, 10978774, 10979792, 10979846, 10979970, 10980047];
+        CONFIG_FILENAME = "config.json";
+        pc.script.legacy = false;
+    </script>
+    <script>
+        window.addEventListener('test', function (event) {
+            console.log('test message');
+        }, false);
+        function loadjscssfile(filename, filetype) {
+            if (filetype == "js") { //if filename is a external JavaScript file
+                var fileref = document.createElement('script')
+                fileref.setAttribute("type", "text/javascript")
+                fileref.setAttribute("src", filename)
+            }
+            else if (filetype == "css") { //if filename is an external CSS file
+                var fileref = document.createElement("link")
+                fileref.setAttribute("rel", "stylesheet")
+                fileref.setAttribute("type", "text/css")
+                fileref.setAttribute("href", filename)
+            }
+            if (typeof fileref != "undefined")
+                document.getElementsByTagName("body")[0].appendChild(fileref)
+        }
+        var content = window;
+        var openFile = function (event) {
+            var input = event.target;
+            var content = window.window;
+            var reader = new FileReader();
+            reader.onload = function () {
+                log = reader.result;
+                document.getElementById('storage').innerHTML = log;
+                loadjscssfile('styles.css', 'css');
+                loadjscssfile('clear.js', 'js');
+                loadjscssfile('__start__.js', 'js');
+                loadjscssfile('__loading__.js', 'js');
+                document.getElementsByTagName("body")[0].setAttribute('dir', 'ltr');
+            };
+            reader.readAsText(input.files[0]);
+        };
+    </script>
+</head>
+
+<body dir="rtl">
+<div id="input">
+    <div class="ui right sidebar inverted vertical menu">
+
+
+        <div class="item">
+            <div class="title">
+                <span class="text">بلاگ</span>
+            </div>
+            <div class="content menu">
+
+                <a href="/faq" class="item">سوالات متداول</a>
+
+                <a href="/blog" class="item">وبلاگ و پرسش و پاسخ</a>
+
+            </div>
+        </div>
+
+
+        <div class="item">
+            <div class="title">
+                <span class="text">حساب کاربری</span>
+            </div>
+            <div class="content menu">
+
+                <a href="/accounts/logout/" class="item">خروج</a>
+
+            </div>
+        </div>
+
+
+        <div class="item">
+            <div class="title">
+                <span class="text">بازی</span>
+            </div>
+            <div class="content menu">
+
+                <a href="/static/game_graphics/map_maker/index.html" class="item">نقشه ساز</a>
+
+                <a href="/static/game_graphics/game_viewer/index.html" class="item">نمایشگر بازی</a>
+
+                <a href="/accounts/panel/" class="item">پنل</a>
+
+            </div>
+        </div>
+
+
+        <div class="item">
+            <div class="title">
+                <span class="text">خانه</span>
+            </div>
+            <div class="content menu">
+
+                <a href="/#section-prizes" class="item">جایزه</a>
+
+                <a href="/#section-intro" class="item">معرفی</a>
+
+                <a href="/#section-history" class="item">تاریخ</a>
+
+                <a href="/#section-organizer" class="item">تماس با ما</a>
+
+                <a href="/#section-schedule" class="item">برنامه</a>
+
+            </div>
+        </div>
+
+
+    </div>
+
+
+    <div class="pusher">
+        <div id="main">
+
+
+            <div style="width: 100vw; height: 1vh; background-image: url(/static/images/header.png); background-repeat: no-repeat; background-size: 100%;"></div>
+
+
+            <div class="ui attached inverted sticky borderless menu navbar-color" id="navbar">
+
+
+                <div class="ui dropdown link item">
+                    <span class="text">خانه</span>
+                    <i class="dropdown icon"></i>
+                    <div class="menu">
+
+                        <a href="/#section-intro" class="item">معرفی</a>
+
+                        <a href="/#section-history" class="item">تاریخ</a>
+
+                        <a href="/faq" class="item">سوالات متداول</a>
+
+                        <a href="/blog" class="item">وبلاگ و پرسش و پاسخ</a>
+
+                        <a href="/#section-prizes" class="item">جایزه</a>
+
+                        <a href="/#section-organizer" class="item">تماس با ما</a>
+
+                        <a href="/#section-schedule" class="item">برنامه</a>
+
+                    </div>
+                </div>
+
+
+                <form name="changeLang" action="/i18n/setlang/" method="POST">
+                    <input type='hidden' name='csrfmiddlewaretoken'
+                           value='VFyrzKjsouModeJUuQr5Rz7WvctR0BMaWJ329wemMJLiZ7MJ5S0LXo8pKpQnb1tP'/>
+                    <input name="next" type="hidden" value="/accounts/login/"/>
+                    <input type="hidden" name="language" value="en"/>
+                </form>
+
+                <div class="right menu" id="right-navbar">
+                    <div class="ui dropdown fitted item">
+                        <i class="user icon large-icon"></i>
+                        <div class="ui inverted menu" style="margin-right: -60px;">
+
+                            <a class="item" href="/accounts/login/">
+                                <i class="sign in icon"></i>
+                                ورود
+                            </a>
+                            <a class="item" href="/accounts/signup/">
+                                <i class="add user icon"></i>
+                                ثبت نام
+                            </a>
+
+                        </div>
+                    </div>
+                    <a class="fitted item popup-link" href="/blog" data-tooltip="وبلاگ و پرسش و پاسخ"
+                       data-position="left center" data-inverted="">
+                        <i class="help icon large-icon"></i>
+                    </a>
+
+
+                    <div style="cursor: pointer;" class="fitted item" onclick="$('.ui.sidebar').sidebar('toggle');">
+                        <i class="sidebar icon large-icon"></i>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div class="ui container">
+
+
+                <form method="post" class="ui form">
+                    <h3 class="ui dividing header">فایل لاگ بازی را در زیر وارد کنید.</h3>
+
+                    <input type="file" accept="text/plain" onchange="openFile(event)"><br>
+                </form>
+
+
+            </div>
+
+
+            <div class="ui borderless fluid stackable attached segment center aligned" id="footer">
+                <div style="margin-left: auto; margin-right: auto;">
+                    <a class="ui icon telegram button" href="https://t.me/aichallenge">
+                        <i class="telegram icon"></i>
+                    </a>
+                    <a class="ui icon instagram button" href="https://www.instagram.com/aichallenge/">
+                        <i class="instagram icon"></i>
+                    </a>
+
+                    <a class="ui icon twitter button" href="https://twitter.com/aichallenge">
+                        <i class="twitter icon"></i>
+                    </a>
+                    <a class="ui icon linkedin button"
+                       href="https://www.linkedin.com/showcase/sharif-ai-challenge/">
+                        <i class="linkedin icon"></i>
+                    </a>
+                    <div class="horizonal divider"></div>
+                    <div class="ui grey label">
+
+                        تمامی حقوق برای <a href="http://ssc.ce.sharif.edu">انجمن علمی دانشکده مهندسی کامپیوتر</a>
+                        دانشگاه صنعتی شریف محفوظ است.
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+    <script src="/static/js/jquery.inview.min.js"></script>
+    <script src="/static/js/footer_scripts.js"></script>
+</div>
+<p id="storage" style="display: none;"></p>
+</body>
+<script>
+    function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, "\\$&");
+            var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+        var log_url = getParameterByName('log_url');
+        if (log_url != null) {
+            $.ajax({
+                type: "GET",
+                url: `/media/${log_url}`,
+                success: function (result) {
+                    document.getElementById('storage').innerHTML = result;
+                    console.log(result);
+                    loadjscssfile('styles.css', 'css');
+                    loadjscssfile('clear.js', 'js');
+                    loadjscssfile('__start__.js', 'js');
+                    loadjscssfile('__loading__.js', 'js');
+                    document.getElementsByTagName("body")[0].setAttribute('dir', 'ltr');
+                }
+            });
+            $('h3').text("در حال دانلود گزارش بازی ...");
+            $('input').hide();
+        }
+</script>
+
+</html>

@@ -1,0 +1,11 @@
+.resume {
+    margin: 0 auto;
+    width: 300px;
+    height:300px;
+     position: absolute;
+    top: 200px; bottom:0; left: 0; right:0;
+}
+
+.responsive {
+    
+}

@@ -1,0 +1,39 @@
+.container-end {
+    position: absolute;
+    top: 7%;
+    left: 3.9%;
+    
+    height: 93vh;
+    width: 97vw;
+    
+    z-index: 1;
+    
+    background-color: rgba(0, 0, 0, 0.9);
+    
+    display: none;
+}
+
+.end-back {
+    width: 100%;
+}
+
+.end-text {
+    text-align: center;
+    margin-top: 20%;
+}
+
+.wins {
+    color: gold;
+}
+
+.fire {
+    color: #D03C4E;
+}
+
+.water {
+    color: #6EC8FD;
+}
+
+.both {
+    color: white;
+}

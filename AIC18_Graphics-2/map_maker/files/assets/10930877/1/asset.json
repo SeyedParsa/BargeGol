@@ -1,0 +1,39 @@
+{
+		"units": [
+			[1, [2, "l", 0, 40, {
+				"x": 0,
+				"y": 0
+			}, 1, 1]],
+			[0, [1, "l", 0, 40, {
+				"x": 0,
+				"y": 0
+			}, 1, 1]]
+		],
+		"towers": [],
+		"towers_partial": [],
+		"players": [
+			[50, 950, 2, 3, 3],
+			[50, 950, 2, 3, 3]
+		],
+		"events": {
+			"newunits": [
+				[0, [1, "l", 0, 40, {
+					"x": 0,
+					"y": 0
+				}, 1, 1]],
+				[1, [2, "l", 0, 40, {
+					"x": 0,
+					"y": 0
+				}, 1, 1]]
+			],
+			"updtowers": [],
+			"updtowers_partial": [],
+			"deadunits": [],
+			"endofpath": [],
+			"destroyedtowers": [],
+			"beans": [],
+			"storms": [],
+			"archer": [],
+			"cannon": []
+		}
+	}

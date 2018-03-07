@@ -1,0 +1,17 @@
+.container-panel {
+    position: absolute;
+    top: 7%;
+    left: 0;
+    
+    width: 3.9%;
+    height: 93vh;
+    
+    background-color: #374346;
+}
+
+.icon {
+    margin-top: 20px;
+    cursor: pointer;
+    color: white;
+    text-align: center;
+}
