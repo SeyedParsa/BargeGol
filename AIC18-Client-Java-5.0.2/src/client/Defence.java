@@ -19,6 +19,7 @@ public class Defence {
     private int H, W;
     private Double[][] latelen;
     private Double[][] adj;
+    private Double[][] goodness;
     private List<Tower> myArchers, myCannons;
     private Tower[][] myTowers;
 
@@ -34,6 +35,7 @@ public class Defence {
         heat = new Double[H][W];
         latelen = new Double[H][W];
         adj = new Double[H][W];
+        goodness = new Double[H][W];
         myArchers = new ArrayList<>();
         myCannons = new ArrayList<>();
         myTowers = new Tower[H][W];
@@ -52,6 +54,7 @@ public class Defence {
                 gonnaSee[y][x] = 0d;
                 latelen[y][x] = 0d;
                 adj[y][x] = 0d;
+                goodness[y][x] = 0d;
             }
         myArchers = new ArrayList();
         myCannons = new ArrayList();
@@ -167,7 +170,21 @@ public class Defence {
                 }
     }
 
+    private void Sort(List<Integer> list, Double[][] array){
+        for (int i = 0; i < list.size(); i++)
+            for (int j = i+1; j < list.size(); j++){
+                int a = list.get(i), b = list.get(j);
+                if (array[a/W][a%W] < array[b/W][b%W]){
+                    int tmp = list.get(i);
+                    list.set(i, list.get(j));
+                    list.set(j, tmp);
+                }
+            }
+    }
+
     private void createTower(World game, int money){
+        //gonnaSee, lateLen, adj
+        List<Integer> candidates = new ArrayList<>();
         int w = map.getWidth(), h = map.getHeight();
         int x = -1, y = -1;
         double bst = 0d;
@@ -176,8 +193,8 @@ public class Defence {
                 double cur = 0;
                 if (myTowers[i][j] != null || game.isTowerConstructable(map.getCellsGrid()[i][j])){
                     int lvl = (myTowers[i][j] == null ? 0 : myTowers[i][j].getLevel());
-                    //cur = gonnaSee[i][j] - lvl*100000;
-                    cur = (lvl == 0 ? latelen[i][j] : -1);
+                    candidates.add(i*w + j);
+                    gonnaSee[i][j] = cur = 1.0/(lvl+1)/(lvl+1)*gonnaSee[i][j]*latelen[i][j]*adj[i][j];
                 }
                 if (x == -1 || cur > bst) {
                     bst = cur;
@@ -185,6 +202,24 @@ public class Defence {
                     y = i;
                 }
             }
+        Sort(candidates, seen);
+        for (int i = 0; i < 5; i++)
+            System.out.print(seen[candidates.get(i)/W][candidates.get(i)%W] + " ");
+        System.out.println();
+        Sort(candidates, gonnaSee);
+        for (int i = 0; i < 5; i++)
+            System.out.print(gonnaSee[candidates.get(i)/W][candidates.get(i)%W] + " ");
+        System.out.println();
+        Sort(candidates, latelen);
+        for (int i = 0; i < 5; i++)
+            System.out.print(latelen[candidates.get(i)/W][candidates.get(i)%W] + " ");
+        System.out.println();
+        Sort(candidates, adj);
+        for (int i = 0; i < 5; i++)
+            System.out.print(adj[candidates.get(i)/W][candidates.get(i)%W] + " ");
+        System.out.println();
+        System.out.println();
+        System.out.println();
         if (x != -1) {
             int lvl = (myTowers[y][x] == null ? 0 : myTowers[y][x].getLevel());
             int prc = (myTowers[y][x] == null ? archerPrice() : archerLevelUpPrice(lvl));
@@ -220,7 +255,7 @@ public class Defence {
         computeLateLen(game);
         computeAdj();
         computeStep(game);
-        //distribute(game, 5);
+        distribute(game, 5);
         computeSeen();
         createTower(game, money);
         /*System.out.println(game.getCurrentTurn());
