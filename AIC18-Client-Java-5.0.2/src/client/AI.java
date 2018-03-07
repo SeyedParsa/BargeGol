@@ -249,7 +249,6 @@ public class AI {
     }
 
     static int plantTime = 425;
-
     private void plant(World game) {
         if (game.getCurrentTurn() >= plantTime) {
             int plantDelay = (int) (game.getAttackMapPaths().get(bestPath).getRoad().size() * 0.42);
