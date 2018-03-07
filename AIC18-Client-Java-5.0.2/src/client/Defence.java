@@ -13,9 +13,12 @@ public class Defence {
     private static double infectionFactor = 0.3;
     private Double[][] footprint;
     private Double[][] seen;
+    private Double[][] gonnaSee;
     private Double[][] heat;
     private Map map;
     private int H, W;
+    private Double[][] latelen;
+    private Double[][] adj;
     private List<Tower> myArchers, myCannons;
     private Tower[][] myTowers;
 
@@ -27,7 +30,10 @@ public class Defence {
         W = map.getWidth();
         footprint = new Double[H][W];
         seen = new Double[H][W];
+        gonnaSee = new Double[H][W];
         heat = new Double[H][W];
+        latelen = new Double[H][W];
+        adj = new Double[H][W];
         myArchers = new ArrayList<>();
         myCannons = new ArrayList<>();
         myTowers = new Tower[H][W];
@@ -35,18 +41,46 @@ public class Defence {
             for (Cell cell : path.getRoad()){
                 int x = cell.getLocation().getX(), y = cell.getLocation().getY();
                 if (footprint[y][x] == null) footprint[y][x] = 0d;
-                footprint[y][x] += (1-footprintRecall);
+                //footprint[y][x] += (1-footprintRecall);
                 heat[y][x] = 0d;
             }
         }
         for (Cell cell : map.getCellsList())
-            if (game.isTowerConstructable(cell))
-                seen[cell.getLocation().getY()][cell.getLocation().getX()] = 0d;
+            if (game.isTowerConstructable(cell)) {
+                int x = cell.getLocation().getX(), y = cell.getLocation().getY();
+                seen[y][x] = 0d;
+                gonnaSee[y][x] = 0d;
+                latelen[y][x] = 0d;
+                adj[y][x] = 0d;
+            }
         myArchers = new ArrayList();
         myCannons = new ArrayList();
     }
 
-    private void distribute(){
+    private void distribute(World game, int step){
+        for (int i = 0; i < H; i++)
+            for (int j = 0; j < W; j++)
+                if (gonnaSee[i][j] != null)
+                    gonnaSee[i][j] = 0d;
+        for (Path path : game.getDefenceMapPaths()){
+            for (int i = 0; i < path.getRoad().size(); i++){
+                Cell cell = path.getRoad().get(i);
+                int x = cell.getLocation().getX(), y = cell.getLocation().getY();
+                double add = footprint[y][x];
+                for (int j = (i + step < path.getRoad().size() ? i + step : path.getRoad().size()-1); j >= i; j--){
+                    cell = path.getRoad().get(j);
+                    x = cell.getLocation().getX();
+                    y = cell.getLocation().getY();
+                    for (int ii = -2; ii <= 2; ii++)
+                        for (int jj = -2; jj <= 2; jj++) {
+                            int yy = y + ii, xx = x + jj;
+                            if (Math.abs(ii) + Math.abs(jj) <= 2 && xx >= 0 && xx < W && yy >= 0 && yy < H && seen[yy][xx] != null)
+                                gonnaSee[yy][xx] += (j == i ? add : add/2);
+                        }
+                    add /= 2;
+                }
+            }
+        }
         /*for (int i = 0; i < h; i++)
             for (int j = 0; j < w; j++){
                 if (res[i][j] == null) continue;
@@ -102,6 +136,37 @@ public class Defence {
                     footprint[i][j] = (footprint[i][j]/(1-footprintRecall)*footprintRecall + heat[i][j]) * (1-footprintRecall);
     }
 
+    private void computeLateLen(World game){
+        for (Path path : game.getDefenceMapPaths()){
+            int len = path.getRoad().size();
+            int ind = 0;
+            for (Cell cell : path.getRoad()){
+                ind++;
+                int x = cell.getLocation().getX(), y = cell.getLocation().getY();
+                for (int ii = -2; ii <= 2; ii++)
+                    for (int jj = -2; jj <= 2; jj++) {
+                        int yy = y + ii, xx = x + jj;
+                        if (Math.abs(ii) + Math.abs(jj) <= 2 && xx >= 0 && xx < W && yy >= 0 && yy < H && seen[yy][xx] != null)
+                            latelen[yy][xx] = Math.max(latelen[yy][xx], (double)ind/(len*len));
+                    }
+            }
+        }
+    }
+
+    private void computeAdj(){
+        for (int i = 0; i < H; i++)
+            for (int j = 0; j < W; j++)
+                if (seen[i][j] != null) {
+                    adj[i][j] = 0d;
+                    for (int ii = -2; ii <= 2; ii++)
+                        for (int jj = -2; jj <= 2; jj++) {
+                            int y = i + ii, x = j + jj;
+                            if (Math.abs(ii) + Math.abs(jj) <= 2 && x >= 0 && x < W && y >= 0 && y < H && footprint[y][x] != null)
+                                adj[i][j]++;
+                        }
+                }
+    }
+
     private void createTower(World game, int money){
         int w = map.getWidth(), h = map.getHeight();
         int x = -1, y = -1;
@@ -111,7 +176,8 @@ public class Defence {
                 double cur = 0;
                 if (myTowers[i][j] != null || game.isTowerConstructable(map.getCellsGrid()[i][j])){
                     int lvl = (myTowers[i][j] == null ? 0 : myTowers[i][j].getLevel());
-                    cur = seen[i][j] - lvl*100000;
+                    //cur = gonnaSee[i][j] - lvl*100000;
+                    cur = (lvl == 0 ? latelen[i][j] : -1);
                 }
                 if (x == -1 || cur > bst) {
                     bst = cur;
@@ -119,11 +185,11 @@ public class Defence {
                     y = i;
                 }
             }
-        if (x != -1 && seen[y][x] > 1e-7) {
+        if (x != -1) {
             int lvl = (myTowers[y][x] == null ? 0 : myTowers[y][x].getLevel());
             int prc = (myTowers[y][x] == null ? archerPrice() : archerLevelUpPrice(lvl));
             if (prc <= money) {
-                System.out.println("Let's create a tower at " + x + "," + y + "(" + (lvl+1) + "," + prc + ")" + " because of " + seen[y][x]);
+                System.out.println("Let's create a tower at " + x + "," + y + "(" + (lvl+1) + "," + prc + ")" + " because of " + gonnaSee[y][x]);
                 if (myTowers[y][x] == null)
                     game.createArcherTower(1, x, y);
                 else
@@ -151,10 +217,24 @@ public class Defence {
             if (tower instanceof ArcherTower) myArchers.add(tower);
             if (tower instanceof CannonTower) myCannons.add(tower);
         }
+        computeLateLen(game);
+        computeAdj();
         computeStep(game);
-        distribute();
+        //distribute(game, 5);
         computeSeen();
         createTower(game, money);
+        /*System.out.println(game.getCurrentTurn());
+        System.out.println("LateLen:");
+        print(latelen);
+        System.out.println("Adj:");
+        print(adj);
+        System.out.println("Foot:");
+        print(footprint);
+        System.out.println("Seen:");
+        print(seen);
+        System.out.println("GonnaSee:");
+        print(gonnaSee);
+        System.out.println("-------------------\n\n\n");*/
     }
 
     int archerPrice(){
@@ -177,6 +257,17 @@ public class Defence {
 
     int cannonPrice(){
         return CannonTower.INITIAL_PRICE + myCannons.size()*CannonTower.INITIAL_PRICE_INCREASE;
+    }
+
+    private void print(Double[][] array){
+        for (int i = 0; i < H; i++) {
+            for (int j = 0; j < W; j++)
+                if (array[i][j] == null)
+                    System.out.print(" ****");
+                else
+                    System.out.printf("%5.2f", array[i][j]);
+            System.out.println();
+        }
     }
 
 }
