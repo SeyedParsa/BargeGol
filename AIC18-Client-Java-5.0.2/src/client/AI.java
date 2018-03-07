@@ -248,10 +248,28 @@ public class AI {
         plant(game);
     }
 
-    static int plantCycle = 100;
+    static int plantTime = 425;
 
     private void plant(World game) {
-        ArrayList<Tower> towers = game.getVisibleEnemyTowers();
+        if (game.getCurrentTurn() >= plantTime) {
+            int plantDelay = (int) (game.getAttackMapPaths().get(bestPath).getRoad().size() * 0.42);
+            ArrayList<Tower> towers = game.getVisibleEnemyTowers();
+            for (Tower t : game.getVisibleEnemyTowers()) {
+                for (RoadCell r : game.getAttackMapPaths().get(bestPath).getRoad()) {
+                    boolean checkIfFound = true;
+                    for (int i = 0; i < 12; i++) {
+                        int nx = r.getLocation().getX() + ix[i], ny = r.getLocation().getY() + iy[i];
+                        if (t.getLocation().getX() == nx && t.getLocation().getY() == ny) {
+                            towers.add(t);
+                            checkIfFound = false;
+                            break;
+                        }
+                    }
+                    if (!checkIfFound) {
+                        break;
+                    }
+                }
+            }
 //        int maxX = -1, maxY = -1;
 //        double MAX = -1;
 //        for(Tower tower : towers){
@@ -267,11 +285,11 @@ public class AI {
 //            game.plantBean(maxX, maxY);
 //            plantCycle += 1;
 //        }
-        towers.sort(new TowerComperator());
-        if (game.getCurrentTurn() > plantCycle && towers.size() > 0) {
-            game.plantBean(towers.get(0).getLocation().getX(), towers.get(0).getLocation().getY());
-            System.out.println("planted in: " + towers.get(0).getLocation().getX() + "," + towers.get(0).getLocation().getY());
-            plantCycle += 50;
+            towers.sort(new TowerComperator());
+            if (game.getCurrentTurn() > plantTime + plantDelay && towers.size() > 0) {
+                game.plantBean(towers.get(0).getLocation().getX(), towers.get(0).getLocation().getY());
+                System.out.println("planted in: " + towers.get(0).getLocation().getX() + "," + towers.get(0).getLocation().getY());
+            }
         }
     }
 
@@ -288,7 +306,7 @@ public class AI {
             if (t2 instanceof CannonTower) {
                 pt2 *= 2;
             }
-            return pt1 - pt2;
+            return pt2 - pt1;
         }
     }
 
