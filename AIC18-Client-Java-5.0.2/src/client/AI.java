@@ -3,10 +3,7 @@ package client;
 import client.model.*;
 import common.util.Log;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import static common.network.JsonSocket.TAG;
 
@@ -116,40 +113,81 @@ public class AI {
         }
     }
 
-    static int MAX_LIMIT_UNIT = 12;
+    static int MAX_LIMIT_UNIT = 7;
     static int ix[] = {0, 1, 0, -1, 0, 1, 2, 1, 0, -1, -2, -1}, iy[] = {1, 0, -1, 0, 2, 1, 0, -1, -2, -1, 0, 1};
 
-    static int stormNeedInd = 0;
+//    static int stormNeedInd = 0;
+
+    static int waitingForStorm = 20;
+
+    static int usedStorms = 0;
 
     private void storm(World game) {
-        int[][] unitgrid = new int[game.getAttackMap().getHeight() + 30][game.getAttackMap().getWidth() + 30];
-        ArrayList<Unit> enemyUnits = game.getEnemyUnits();
-        int MAX = -1, maxX = -1, maxY = -1;
-        for(Unit unit : enemyUnits){
-            Point p = unit.getLocation();
-            int x = p.getX(), y = p.getY();
-            for(int i = 0; i < 12; i++) {
-                int nx = x + ix[i], ny = y + iy[i];
-                if (isInside(nx, ny, game))
-                    unitgrid[ny][nx]++;
-            }
-            if(unitgrid[y][x] > MAX){
-                MAX = unitgrid[y][x];
-                maxX = x;
-                maxY = y;
-            }
+        if (Game.INITIAL_STORMS_COUNT - usedStorms <= 0) {
+            return;
         }
-        if(MAX > MAX_LIMIT_UNIT) {
-            if(stormNeedInd < 10)
-                stormNeedInd++;
-            else {
-                game.createStorm(maxX, maxY);
-                MAX_LIMIT_UNIT += 4;
-                stormNeedInd = 0;
+        if (game.getCurrentTurn() > waitingForStorm) {
+            for (Path p : game.getDefenceMapPaths()) {
+                for (int i = p.getRoad().size() - 1; i >= p.getRoad().size() * 7 / 8; i--) {
+                    if (p.getRoad().get(i).getUnits().size() >= MAX_LIMIT_UNIT && towersAround(game, p, i - 2) < 2) {
+                        waitingForStorm *= 2;
+                        System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
+                        game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
+                        usedStorms++;
+                        return;
+                    }
+                }
             }
         }
 
+//        game.getDefenceMapPaths().get(0).getRoad().get(game.getDefenceMapPaths().get(0).getRoad().size() - 1).getLocation()
+//        int[][] unitgrid = new int[game.getAttackMap().getHeight() + 30][game.getAttackMap().getWidth() + 30];
+//        ArrayList<Unit> enemyUnits = game.getEnemyUnits();
+//        int MAX = -1, maxX = -1, maxY = -1;
+//        for(Unit unit : enemyUnits){
+//            Point p = unit.getLocation();
+//            int x = p.getX(), y = p.getY();
+//            for(int i = 0; i < 12; i++) {
+//                int nx = x + ix[i], ny = y + iy[i];
+//                if (isInside(nx, ny, game))
+//                    unitgrid[ny][nx]++;
+//            }
+//            if(unitgrid[y][x] > MAX){
+//                MAX = unitgrid[y][x];
+//                maxX = x;
+//                maxY = y;
+//            }
+//        }
+//        if(MAX > MAX_LIMIT_UNIT) {
+//            if(stormNeedInd < 10)
+//                stormNeedInd++;
+//            else {
+//                game.createStorm(maxX, maxY);
+//                MAX_LIMIT_UNIT += 4;
+//                stormNeedInd = 0;
+//            }
+//        }
+
     }
+
+    int towersAround(World game, Path path, int ind) {
+        HashSet<Tower> towerHashSet = new HashSet<Tower>();
+        for (int j = ind; j < path.getRoad().size(); j++) {
+            int x = path.getRoad().get(j).getLocation().getX(), y = path.getRoad().get(j).getLocation().getY();
+            for (int i = 0; i < 12; i++) {
+                for (Tower t : game.getMyTowers()) {
+                    int nx = x + ix[i], ny = y + iy[i];
+                    if (isInside(nx, ny, game)) {
+                        if (t.getLocation().getX() == nx && t.getLocation().getY() == ny) {
+                            towerHashSet.add(t);
+                        }
+                    }
+                }
+            }
+        }
+        return towerHashSet.size();
+    }
+
 
     private boolean isInside(int nx, int ny, World game) {
         if(nx < 0 || ny < 0 || nx >= game.getAttackMap().getWidth() || ny >= game.getAttackMap().getHeight())
