@@ -400,20 +400,11 @@ public class AI {
         if(bestPath == -1)
             findBestPath(game);
         int myMoney = attackMoney;
-        int bestPathCanon = pathCanon[bestPath];
-        //      System.out.println(bestPathCanon + " --- " + (int)lightUnitPower);
-        if(bestPathCanon > (int)lightUnitPower)
-            while(myMoney - heavyUnitPrice > 0) {
-                game.createHeavyUnit(bestPath);
-                heavyunitCnt++;
-                myMoney -= heavyUnitPrice;
-            }
-        else
-            while(myMoney - lightUnitPrice > 0) {
-                game.createLightUnit(bestPath);
-                lightunitCnt++;
-                myMoney -= lightUnitPrice;
-            }
+        while(myMoney - lightUnitPrice > 0) {
+            game.createLightUnit(bestPath);
+            lightunitCnt++;
+            myMoney -= lightUnitPrice;
+        }
     }
 
     private void findBestPath(World game) {
