@@ -113,7 +113,7 @@ public class AI {
         }
     }
 
-    static int MAX_LIMIT_UNIT = 5;
+    static int MAX_LIMIT_UNIT = 2;
     static int ix[] = {0, 1, 0, -1, 0, 1, 2, 1, 0, -1, -2, -1}, iy[] = {1, 0, -1, 0, 2, 1, 0, -1, -2, -1, 0, 1};
 
 //    static int stormNeedInd = 0;
@@ -125,11 +125,16 @@ public class AI {
     static int minPt = MAX_LIMIT_UNIT;
 
     private void storm(World game) {
-        if (Game.INITIAL_STORMS_COUNT - usedStorms > 1) {
+        if (Game.INITIAL_STORMS_COUNT - usedStorms > 0) {
             if (game.getCurrentTurn() > waitingForStorm) {
                 for (Path p : game.getDefenceMapPaths()) {
                     for (int i = p.getRoad().size() - 1; i >= p.getRoad().size() * 7 / 8; i--) {
-                        int pt = p.getRoad().get(i).getUnits().size() + (p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT) * 2 - towersAround(game, p, i - 2) * 2;
+                        int pt2 = 0;
+                        if (p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT > 0) {
+                            pt2 = p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT;
+
+                        }
+                        int pt = p.getRoad().get(i).getUnits().size() + pt2 * 2 - towersAround(game, p, i - 2) * 2;
                         if (pt > minPt) {
                             System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
                             game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
