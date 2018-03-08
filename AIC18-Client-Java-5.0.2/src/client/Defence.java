@@ -62,6 +62,8 @@ public class Defence {
             }
         myArchers = new ArrayList();
         myCannons = new ArrayList();
+        computeLateLen(game);
+        computeAdj();
     }
 
     private void distribute(World game, int step){
@@ -142,8 +144,12 @@ public class Defence {
             int x = unit.getLocation().getX(), y = unit.getLocation().getY();
             int w = (unit instanceof LightUnit ? LightUnit.INITIAL_HEALTH : HeavyUnit.INITIAL_HEALTH);
             heat[y][x] += w;
-            heat2[y][x] += w*w;
         }
+
+        for (int i = 0; i < H; i++)
+            for (int j = 0; j < W; j++)
+                if (heat[i][j] != null)
+                    heat2[i][j] = heat[i][j]*heat[i][j];
 
         for (int i = 0; i < H; i++)
             for (int j = 0; j < W; j++)
@@ -209,7 +215,7 @@ public class Defence {
                     int lvl = (myTowers[i][j] == null ? 0 : myTowers[i][j].getLevel());
                     candidates.add(i*w + j);
                     goodness[i][j] = cur = 1.0/(lvl+1)/(lvl+1)*gonnaSee2[i][j]*latelen[i][j]*adj[i][j];
-                    if (x == -1 || cur > bst) {
+                    if (cur > bst) {
                         bst = cur;
                         x = j;
                         y = i;
@@ -240,11 +246,16 @@ public class Defence {
             int prc2 = (myTowers[y][x] == null ? cannonPrice() : cannonLevelUpPrice(lvl));
             if (prc <= money || prc2 <= money) {
                 System.out.println("Let's create a tower at " + x + "," + y + "(" + (lvl+1) + "," + prc + ")" + " because of " + gonnaSee[y][x]);
+                System.out.println(gonnaSee2[y][x] + "," + gonnaSee2[y][x] / gonnaSee[y][x]);
                 if (myTowers[y][x] == null) {
-                    if (prc2 > money || prc <= money && gonnaSee2[y][x] <= 5*gonnaSee[y][x])
+                    if (prc2 > money || prc <= money && gonnaSee2[y][x] <= 400*gonnaSee[y][x]) {
+                        System.out.println("An Archer One " + prc + " " + prc2 + " " + money);
                         game.createArcherTower(1, x, y);
-                    else
+                    }
+                    else {
+                        System.out.println("A Cannon One " + prc + " " + prc2 + " " + money);
                         game.createCannonTower(1, x, y);
+                    }
                 }
                 else
                     game.upgradeTower(myTowers[y][x]);
@@ -271,8 +282,6 @@ public class Defence {
             if (tower instanceof ArcherTower) myArchers.add(tower);
             if (tower instanceof CannonTower) myCannons.add(tower);
         }
-        computeLateLen(game);
-        computeAdj();
         computeStep(game);
         distribute(game, 5);
         computeSeen();
