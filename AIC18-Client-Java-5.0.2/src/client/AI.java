@@ -222,7 +222,10 @@ public class AI {
 
         Log.d(TAG,"HeavyTurn Called"+" Turn:"+game.getCurrentTurn());
         Player myInformation = game.getMyInformation();
-        savingMoney += 3 * myInformation.getIncome() / 5;
+        if(game.getCurrentTurn() < 500)
+            savingMoney += 3 * myInformation.getIncome() / 5;
+        else
+            savingMoney += 4 * myInformation.getIncome() / 5;
         findBestPath(game);
         simpleTurn(game);
     }
@@ -231,7 +234,7 @@ public class AI {
     static int attackPower = 10;
     static int FIRST_ATTACK = 30;
     private void attack(World game) {
-        int[] attackTime = {90, 140, 200, 270, 350, 440, 540, 650, 760, 860, 900, 10001};
+        int[] attackTime = {90, 140, 200, 270, 350, 500, 610, 720, 880, 10001};
         if(game.getCurrentTurn() == attackTime[attackTimeIndex]) {
             attackPower += attackTimeIndex;
             System.out.println("here " + game.getCurrentTurn());
