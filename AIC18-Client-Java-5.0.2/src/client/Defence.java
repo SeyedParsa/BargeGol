@@ -11,10 +11,10 @@ import java.util.List;
 public class Defence {
     private static double footprintRecall = 0.9;
     private static double infectionFactor = 0.3;
-    private Double[][] footprint;
-    private Double[][] seen;
-    private Double[][] gonnaSee;
-    private Double[][] heat;
+    private Double[][] footprint, footprint2;
+    private Double[][] seen, seen2;
+    private Double[][] gonnaSee, gonnaSee2;
+    private Double[][] heat, heat2;
     private Map map;
     private int H, W;
     private Double[][] latelen;
@@ -30,9 +30,13 @@ public class Defence {
         H = map.getHeight();
         W = map.getWidth();
         footprint = new Double[H][W];
+        footprint2 = new Double[H][W];
         seen = new Double[H][W];
+        seen2 = new Double[H][W];
         gonnaSee = new Double[H][W];
+        gonnaSee2 = new Double[H][W];
         heat = new Double[H][W];
+        heat2 = new Double[H][W];
         latelen = new Double[H][W];
         adj = new Double[H][W];
         goodness = new Double[H][W];
@@ -42,16 +46,16 @@ public class Defence {
         for (Path path : game.getDefenceMapPaths()){
             for (Cell cell : path.getRoad()){
                 int x = cell.getLocation().getX(), y = cell.getLocation().getY();
-                if (footprint[y][x] == null) footprint[y][x] = 0d;
+                if (footprint[y][x] == null) footprint[y][x] = footprint2[y][x] = 0d;
                 //footprint[y][x] += (1-footprintRecall);
-                heat[y][x] = 0d;
+                heat[y][x] = heat2[y][x] = 0d;
             }
         }
         for (Cell cell : map.getCellsList())
             if (game.isTowerConstructable(cell)) {
                 int x = cell.getLocation().getX(), y = cell.getLocation().getY();
-                seen[y][x] = 0d;
-                gonnaSee[y][x] = 0d;
+                seen[y][x] = seen2[y][x] = 0d;
+                gonnaSee[y][x] = gonnaSee2[y][x] = 0d;
                 latelen[y][x] = 0d;
                 adj[y][x] = 0d;
                 goodness[y][x] = 0d;
@@ -64,12 +68,13 @@ public class Defence {
         for (int i = 0; i < H; i++)
             for (int j = 0; j < W; j++)
                 if (gonnaSee[i][j] != null)
-                    gonnaSee[i][j] = 0d;
+                    gonnaSee[i][j] = gonnaSee2[i][j] = 0d;
         for (Path path : game.getDefenceMapPaths()){
             for (int i = 0; i < path.getRoad().size(); i++){
                 Cell cell = path.getRoad().get(i);
                 int x = cell.getLocation().getX(), y = cell.getLocation().getY();
                 double add = footprint[y][x];
+                double add2 = footprint2[y][x];
                 for (int j = (i + step < path.getRoad().size() ? i + step : path.getRoad().size()-1); j >= i; j--){
                     cell = path.getRoad().get(j);
                     x = cell.getLocation().getX();
@@ -77,10 +82,13 @@ public class Defence {
                     for (int ii = -2; ii <= 2; ii++)
                         for (int jj = -2; jj <= 2; jj++) {
                             int yy = y + ii, xx = x + jj;
-                            if (Math.abs(ii) + Math.abs(jj) <= 2 && xx >= 0 && xx < W && yy >= 0 && yy < H && seen[yy][xx] != null)
-                                gonnaSee[yy][xx] += (j == i ? add : add/2);
+                            if (Math.abs(ii) + Math.abs(jj) <= 2 && xx >= 0 && xx < W && yy >= 0 && yy < H && seen[yy][xx] != null) {
+                                gonnaSee[yy][xx] += (j == i ? add : add / 2);
+                                gonnaSee2[yy][xx] += (j == i ? add2 : add2 / 2);
+                            }
                         }
                     add /= 2;
+                    add2 /= 2;
                 }
             }
         }
@@ -117,11 +125,14 @@ public class Defence {
             for (int j = 0; j < W; j++)
                 if (seen[i][j] != null) {
                     seen[i][j] = 0d;
+                    seen2[i][j] = 0d;
                     for (int ii = -2; ii <= 2; ii++)
                         for (int jj = -2; jj <= 2; jj++) {
                             int y = i + ii, x = j + jj;
-                            if (Math.abs(ii) + Math.abs(jj) <= 2 && x >= 0 && x < W && y >= 0 && y < H && footprint[y][x] != null)
+                            if (Math.abs(ii) + Math.abs(jj) <= 2 && x >= 0 && x < W && y >= 0 && y < H && footprint[y][x] != null) {
                                 seen[i][j] += footprint[y][x];
+                                seen2[i][j] += footprint2[y][x];
+                            }
                         }
                 }
     }
@@ -131,12 +142,15 @@ public class Defence {
             int x = unit.getLocation().getX(), y = unit.getLocation().getY();
             int w = (unit instanceof LightUnit ? LightUnit.INITIAL_HEALTH : HeavyUnit.INITIAL_HEALTH);
             heat[y][x] += w;
+            heat2[y][x] += w*w;
         }
 
         for (int i = 0; i < H; i++)
             for (int j = 0; j < W; j++)
-                if (footprint[i][j] != null)
-                    footprint[i][j] = (footprint[i][j]/(1-footprintRecall)*footprintRecall + heat[i][j]) * (1-footprintRecall);
+                if (footprint[i][j] != null) {
+                    footprint[i][j] = (footprint[i][j] / (1 - footprintRecall) * footprintRecall + heat[i][j]) * (1 - footprintRecall);
+                    footprint2[i][j] = (footprint2[i][j] / (1 - footprintRecall) * footprintRecall + heat2[i][j]) * (1 - footprintRecall);
+                }
     }
 
     private void computeLateLen(World game){
@@ -194,15 +208,15 @@ public class Defence {
                 if (myTowers[i][j] != null || game.isTowerConstructable(map.getCellsGrid()[i][j])){
                     int lvl = (myTowers[i][j] == null ? 0 : myTowers[i][j].getLevel());
                     candidates.add(i*w + j);
-                    gonnaSee[i][j] = cur = 1.0/(lvl+1)/(lvl+1)*gonnaSee[i][j]*latelen[i][j]*adj[i][j];
-                }
-                if (x == -1 || cur > bst) {
-                    bst = cur;
-                    x = j;
-                    y = i;
+                    goodness[i][j] = cur = 1.0/(lvl+1)/(lvl+1)*gonnaSee2[i][j]*latelen[i][j]*adj[i][j];
+                    if (x == -1 || cur > bst) {
+                        bst = cur;
+                        x = j;
+                        y = i;
+                    }
                 }
             }
-        Sort(candidates, seen);
+        /*Sort(candidates, seen);
         for (int i = 0; i < 5; i++)
             System.out.print(seen[candidates.get(i)/W][candidates.get(i)%W] + " ");
         System.out.println();
@@ -219,14 +233,19 @@ public class Defence {
             System.out.print(adj[candidates.get(i)/W][candidates.get(i)%W] + " ");
         System.out.println();
         System.out.println();
-        System.out.println();
+        System.out.println();*/
         if (x != -1) {
             int lvl = (myTowers[y][x] == null ? 0 : myTowers[y][x].getLevel());
             int prc = (myTowers[y][x] == null ? archerPrice() : archerLevelUpPrice(lvl));
-            if (prc <= money) {
+            int prc2 = (myTowers[y][x] == null ? cannonPrice() : cannonLevelUpPrice(lvl));
+            if (prc <= money || prc2 <= money) {
                 System.out.println("Let's create a tower at " + x + "," + y + "(" + (lvl+1) + "," + prc + ")" + " because of " + gonnaSee[y][x]);
-                if (myTowers[y][x] == null)
-                    game.createArcherTower(1, x, y);
+                if (myTowers[y][x] == null) {
+                    if (prc2 > money || prc <= money && gonnaSee2[y][x] <= 5*gonnaSee[y][x])
+                        game.createArcherTower(1, x, y);
+                    else
+                        game.createCannonTower(1, x, y);
+                }
                 else
                     game.upgradeTower(myTowers[y][x]);
             }
@@ -242,7 +261,7 @@ public class Defence {
         for (int i = 0; i < H; i++)
             for (int j = 0; j < W; j++) {
                 if (heat[i][j] != null)
-                    heat[i][j] = 0d;
+                    heat[i][j] = heat2[i][j] = 0d;
                 myTowers[i][j] = null;
             }
         myArchers.clear();
@@ -280,6 +299,13 @@ public class Defence {
         double res = ArcherTower.INITIAL_DAMAGE;
         for (int i = 0; i < lvl-1; i++)
             res *= 1.4;
+        return (int)res;
+    }
+
+    int cannonLevelUpPrice(int lvl) {
+        double res = CannonTower.INITIAL_LEVEL_UP_PRICE;
+        for (int i = 0; i < lvl-1; i++)
+            res *= 1.5;
         return (int)res;
     }
 
