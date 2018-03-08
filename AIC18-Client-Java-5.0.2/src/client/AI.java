@@ -304,7 +304,7 @@ public class AI {
         for(int i = 0; i < pathCnt; i++){
             int survivorCnt = numberOfSurvivors(game, paths, i, heavyunitCnttmp, heavyUnitHealth, false);
             System.out.println("heavy:  " + "count of units " + heavyunitCnttmp + " health of units " + heavyUnitHealth + " -> " + survivorCnt);
-            if(survivorCnt * 5 > bestPathSurvival) {
+            if(survivorCnt > bestPathSurvival) {
                 bestPathSurvival = survivorCnt;
                 bestPath = i;
                 lightUnit = false;
@@ -363,8 +363,6 @@ public class AI {
         }
         if(!lightUnit)
             survivorCnt *= 5;
-        if(currentHealth <= 0)
-            survivorCnt = 0;
         survivorCnt = survivorCnt * 4 + roadCells.size();
         return survivorCnt;
 
