@@ -113,7 +113,7 @@ public class AI {
         }
     }
 
-    static int MAX_LIMIT_UNIT = 6;
+    static int MAX_LIMIT_UNIT = 5;
     static int ix[] = {0, 1, 0, -1, 0, 1, 2, 1, 0, -1, -2, -1}, iy[] = {1, 0, -1, 0, 2, 1, 0, -1, -2, -1, 0, 1};
 
 //    static int stormNeedInd = 0;
@@ -134,7 +134,7 @@ public class AI {
                             System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
                             game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
                             usedStorms++;
-                            MAX_LIMIT_UNIT += MAX_LIMIT_UNIT / 2;
+//                            MAX_LIMIT_UNIT += MAX_LIMIT_UNIT / 2;
                             return;
                         }
                     }
