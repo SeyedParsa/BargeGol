@@ -245,7 +245,7 @@ public class AI {
     static int attackPower = 10;
     static int FIRST_ATTACK = 30;
     private void attack(World game) {
-        int[] attackTime = {90, 140, 200, 270, 350, 500, 610, 720, 880, 10001};
+        int[] attackTime = {90, 140, 200, 270, 350, 500, 610, 720, 850, 920, 10001};
         if(game.getCurrentTurn() == attackTime[attackTimeIndex]) {
             attackPower += attackTimeIndex;
             System.out.println("here " + game.getCurrentTurn());
@@ -305,7 +305,7 @@ public class AI {
             int survivorCnt = numberOfSurvivors(game, paths, i, heavyunitCnttmp, heavyUnitHealth, false);
             System.out.println("heavy:  " + "count of units " + heavyunitCnttmp + " health of units " + heavyUnitHealth + " -> " + survivorCnt);
             if(survivorCnt * 5 > bestPathSurvival) {
-                bestPathSurvival = survivorCnt * 5;
+                bestPathSurvival = survivorCnt;
                 bestPath = i;
                 lightUnit = false;
             }
@@ -361,9 +361,13 @@ public class AI {
             }else
                 currentHealth -= t * tower.getDamage();
         }
-        if(survivorCnt > 0 & currentHealth > 0)
-            return survivorCnt;
-        return 0;
+        if(!lightUnit)
+            survivorCnt *= 5;
+        if(currentHealth <= 0)
+            survivorCnt = 0;
+        survivorCnt = survivorCnt * 4 + roadCells.size();
+        return survivorCnt;
+
     }
 
     int firstAttackInd = 0;
