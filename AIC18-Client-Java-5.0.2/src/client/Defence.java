@@ -214,7 +214,7 @@ public class Defence {
                 if (myTowers[i][j] != null || game.isTowerConstructable(map.getCellsGrid()[i][j])){
                     int lvl = (myTowers[i][j] == null ? 0 : myTowers[i][j].getLevel());
                     candidates.add(i*w + j);
-                    goodness[i][j] = cur = 1.0/(lvl+1)/(lvl+1)*gonnaSee2[i][j]*latelen[i][j]*adj[i][j];
+                    goodness[i][j] = cur = 1.0/(lvl+1)/(lvl+1)*gonnaSee[i][j]*latelen[i][j]*adj[i][j];
                     if (cur > bst) {
                         bst = cur;
                         x = j;
@@ -248,7 +248,7 @@ public class Defence {
                 System.out.println("Let's create a tower at " + x + "," + y + "(" + (lvl+1) + "," + prc + ")" + " because of " + gonnaSee[y][x]);
                 System.out.println(gonnaSee2[y][x] + "," + gonnaSee2[y][x] / gonnaSee[y][x]);
                 if (myTowers[y][x] == null) {
-                    if (prc2 > money || prc <= money && gonnaSee2[y][x] <= 400*gonnaSee[y][x]) {
+                    if (prc2 > money || prc <= money && gonnaSee2[y][x] <= 1000*gonnaSee[y][x]) {
                         System.out.println("An Archer One " + prc + " " + prc2 + " " + money);
                         game.createArcherTower(1, x, y);
                     }
