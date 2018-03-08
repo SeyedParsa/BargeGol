@@ -52,13 +52,13 @@ public class AI {
         plant(game);
     }
 
-    static int plantTime = 440;
+    static int plantTime = 502;
     private void plant(World game) {
         if (game.getCurrentTurn() >= plantTime) {
-            int plantDelay = (int) (game.getAttackMapPaths().get(bestPath).getRoad().size() * 0.42);
-            ArrayList<Tower> towers = game.getVisibleEnemyTowers();
+            int plantDelay = (int) (game.getAttackMapPaths().get(erfansPath).getRoad().size() * 0.42);
+            ArrayList<Tower> towers = new ArrayList<Tower>();
             for (Tower t : game.getVisibleEnemyTowers()) {
-                for (RoadCell r : game.getAttackMapPaths().get(bestPath).getRoad()) {
+                for (RoadCell r : game.getAttackMapPaths().get(erfansPath).getRoad()) {
                     boolean checkIfFound = true;
                     for (int i = 0; i < 12; i++) {
                         int nx = r.getLocation().getX() + ix[i], ny = r.getLocation().getY() + iy[i];
@@ -121,49 +121,55 @@ public class AI {
     static int waitingForStorm = 20;
 
     static int usedStorms = 0;
-
+    static int minStorm = 0;
     static int minPt = MAX_LIMIT_UNIT;
 
     private void storm(World game) {
-        if (Game.INITIAL_STORMS_COUNT - usedStorms > 0) {
-            if (game.getCurrentTurn() > waitingForStorm) {
-                for (Path p : game.getDefenceMapPaths()) {
-                    for (int i = p.getRoad().size() - 1; i >= p.getRoad().size() * 7 / 8; i--) {
-                        int pt2 = 0;
-                        if (p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT > 0) {
-                            pt2 = p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT;
+//        if (Game.INITIAL_STORMS_COUNT - usedStorms > 1) {
+//            if (game.getCurrentTurn() > waitingForStorm) {
+//                for (Path p : game.getDefenceMapPaths()) {
+//                    for (int i = p.getRoad().size() - 1; i >= p.getRoad().size() * 7 / 8; i--) {
+//                        int pt2 = 0;
+//                        if (p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT > 0) {
+//                            pt2 = p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT;
+//
+//                        }
+//                        int pt = p.getRoad().get(i).getUnits().size() + pt2 * 2 - towersAround(game, p, i - 2) * 2;
+//                        if (pt > minPt) {
+//                            System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
+//                            game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
+//                            usedStorms++;
+////                            MAX_LIMIT_UNIT += MAX_LIMIT_UNIT / 2;
+//                            return;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        for (Path p : game.getDefenceMapPaths()) {
+//            ArrayList<Unit> unitsInEnd = new ArrayList<Unit>();
+//            unitsInEnd.addAll(p.getRoad().get(p.getRoad().size() - 1).getUnits());
+//            unitsInEnd.addAll(p.getRoad().get(p.getRoad().size() - 2).getUnits());
+//            int enemyNum = 0;
+//            for (Unit u : unitsInEnd) {
+//                if (u instanceof HeavyUnit) {
+//                    enemyNum += 5;
+//                } else {
+//                    enemyNum++;
+//                }
+//            }
+//            if (enemyNum >= game.getMyInformation().getStrength()) {
+//                game.createStorm(p.getRoad().get(p.getRoad().size() - 1).getLocation().getX(), p.getRoad().get(p.getRoad().size() - 1).getLocation().getY());
+//            } else {
+//                if (game.getCurrentTurn() > 500) {
+//                    System.out.println("strength: " + game.getMyInformation().getStrength() + "enemies: " + enemyNum);
+//                }
+//            }
+//        }
 
-                        }
-                        int pt = p.getRoad().get(i).getUnits().size() + pt2 * 2 - towersAround(game, p, i - 2) * 2;
-                        if (pt > minPt) {
-                            System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
-                            game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
-                            usedStorms++;
-//                            MAX_LIMIT_UNIT += MAX_LIMIT_UNIT / 2;
-                            return;
-                        }
-                    }
-                }
-            }
-        }
         for (Path p : game.getDefenceMapPaths()) {
-            ArrayList<Unit> unitsInEnd = new ArrayList<Unit>();
-            unitsInEnd.addAll(p.getRoad().get(p.getRoad().size() - 1).getUnits());
-            unitsInEnd.addAll(p.getRoad().get(p.getRoad().size() - 2).getUnits());
-            int enemyNum = 0;
-            for (Unit u : unitsInEnd) {
-                if (u instanceof HeavyUnit) {
-                    enemyNum += 5;
-                } else {
-                    enemyNum++;
-                }
-            }
-            if (enemyNum >= game.getMyInformation().getStrength()) {
+            if (p.getRoad().get(p.getRoad().size() - 1).getUnits().size() > minStorm) {
                 game.createStorm(p.getRoad().get(p.getRoad().size() - 1).getLocation().getX(), p.getRoad().get(p.getRoad().size() - 1).getLocation().getY());
-            } else {
-                if (game.getCurrentTurn() > 500) {
-                    System.out.println("strength: " + game.getMyInformation().getStrength() + "enemies: " + enemyNum);
-                }
             }
         }
 
@@ -317,8 +323,10 @@ public class AI {
             for (int i = 0; i < lightunitCnttmp; i++, lightunitCnt++)
                 game.createLightUnit(bestPath);
         }
-
+        erfansPath = bestPath;
     }
+
+    static int erfansPath = 0;
 
     private int numberOfSurvivors(World game, ArrayList<Path> paths, int pathNumber, int survivorCnt, int currentHealth, boolean lightUnit) {
         int width = game.getAttackMap().getWidth(), heigt = game.getAttackMap().getHeight();
