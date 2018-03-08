@@ -46,7 +46,7 @@ public class AI {
         defenceMoney = (int) (defenceInvest * (myInformation.getMoney() - savingMoney));
 //        System.out.println(myInformation.getMoney() + " " + attackMoney + " " + defenceMoney + " " + savingMoney);
 
-        Attack(game);
+        attack(game);
         lighDefense(game);
         storm(game);
         plant(game);
@@ -227,22 +227,155 @@ public class AI {
         simpleTurn(game);
     }
 
+
     static int attackPower = 10;
-    private void Attack(World game) {
-        int[] attackTime = {1, 20, 50, 90, 140, 200, 270, 350, 440, 540, 650, 760, 880, 960, 990, 10001};
-        if(game.getCurrentTurn() == attackTime[attackTimeIndex]){
+    static int FIRST_ATTACK = 30;
+    private void attack(World game) {
+        int[] attackTime = {90, 140, 200, 270, 350, 440, 540, 650, 760, 860, 900, 10001};
+        if(game.getCurrentTurn() == attackTime[attackTimeIndex]) {
             attackPower += attackTimeIndex;
             System.out.println("here " + game.getCurrentTurn());
-            attackMoney += savingMoney / 2;
-            ss = savingMoney / 2;
+            attackMoney += savingMoney;
             savingMoney = 0;
             attackTimeIndex++;
-            secondTime = true;
-        }else if(secondTime){
-            attackMoney += ss;
-            secondTime = false;
+            bestAttackStrategy(game);
+            return;
         }
+        if(game.getCurrentTurn() < FIRST_ATTACK)
+            primitiveAttack(game);
+
         lightAttack(game);
+    }
+
+    private void bestAttackStrategy(World game) {
+
+        int lightUnitPrice = LightUnit.INITIAL_PRICE + lightunitCnt / LightUnit.LEVEL_UP_THRESHOLD * LightUnit.PRICE_INCREASE;
+        int heavyUnitPrice = HeavyUnit.INITIAL_PRICE + heavyunitCnt / HeavyUnit.LEVEL_UP_THRESHOLD * HeavyUnit.PRICE_INCREASE;
+
+        int lightUnitHealth = (int)((double)LightUnit.INITIAL_HEALTH * Math.pow(1.3, lightunitCnt / LightUnit.LEVEL_UP_THRESHOLD));
+        int heavyUnitHealth = (int)((double)HeavyUnit.INITIAL_HEALTH * Math.pow(1.3, heavyunitCnt / HeavyUnit.LEVEL_UP_THRESHOLD));
+
+
+        Player myInformation = game.getMyInformation();
+        ArrayList<Path> paths = game.getAttackMapPaths();
+        if(bestPath == -1)
+            findBestPath(game);
+        int myMoney = attackMoney;
+        int heavyunitCnttmp = 0, lightunitCnttmp = 0;
+        while(myMoney - heavyUnitPrice > 0) {
+            heavyunitCnttmp++;
+            myMoney -= heavyUnitPrice;
+        }
+        myMoney = attackMoney;
+        while(myMoney - lightUnitPrice > 0) {
+            lightunitCnttmp++;
+            myMoney -= lightUnitPrice;
+        }
+        myMoney = attackMoney;
+
+
+        int pathCnt = paths.size();
+        int bestPathSurvival = -1;
+        boolean lightUnit = false;
+        for(int i = 0; i < pathCnt; i++){
+            int survivorCnt = numberOfSurvivors(game, paths, i, lightunitCnttmp, lightUnitHealth, true);
+            System.out.println("light:  " + "count of units " + lightunitCnttmp + " health of units " + lightUnitHealth + " -> " + survivorCnt);
+            if(survivorCnt > bestPathSurvival) {
+                bestPathSurvival = survivorCnt;
+                bestPath = i;
+                lightUnit = true;
+            }
+        }
+
+        for(int i = 0; i < pathCnt; i++){
+            int survivorCnt = numberOfSurvivors(game, paths, i, heavyunitCnttmp, heavyUnitHealth, false);
+            System.out.println("heavy:  " + "count of units " + heavyunitCnttmp + " health of units " + heavyUnitHealth + " -> " + survivorCnt);
+            if(survivorCnt * 5 > bestPathSurvival) {
+                bestPathSurvival = survivorCnt * 5;
+                bestPath = i;
+                lightUnit = false;
+            }
+        }
+        System.out.println("bestPathSurvival  " + bestPathSurvival);
+        if(bestPathSurvival > 0) {
+            if (lightUnit)
+                for (int i = 0; i < lightunitCnttmp; i++, lightunitCnt++)
+                    game.createLightUnit(bestPath);
+            else
+                for (int i = 0; i < heavyunitCnttmp; i++, heavyunitCnt++)
+                    game.createHeavyUnit(bestPath);
+        }else{
+            findBestPath(game);
+            for (int i = 0; i < lightunitCnttmp; i++, lightunitCnt++)
+                game.createLightUnit(bestPath);
+        }
+
+    }
+
+    private int numberOfSurvivors(World game, ArrayList<Path> paths, int pathNumber, int survivorCnt, int currentHealth, boolean lightUnit) {
+        int width = game.getAttackMap().getWidth(), heigt = game.getAttackMap().getHeight();
+        boolean[][] mark = new boolean[heigt][width];
+        ArrayList<RoadCell> roadCells = paths.get(pathNumber).getRoad();
+        for(RoadCell cell : roadCells) {
+            Point p = cell.getLocation();
+            mark[p.getY()][p.getX()] = true;
+        }
+
+        ArrayList<Tower> towers = game.getVisibleEnemyTowers();
+        int life = currentHealth;
+        for(Tower tower : towers) {
+            Point p = tower.getLocation();
+            int t = 0;
+            for (int j = 0; j < 12; j++) {
+                int x = p.getX() + ix[j], y = p.getY() + iy[j];
+                if (isInside(x, y, game) && mark[y][x] == true)
+                    t++;
+            }
+            if(lightUnit)
+                t = (t + 1) / 2;
+            if(tower.getClass() == ArcherTower.class) {
+                while (t > 0) {
+                    life -= tower.getDamage();
+                    if (life < 0) {
+                        life = currentHealth;
+                        survivorCnt--;
+                    }
+                    t--;
+                }
+            }else
+                currentHealth -= t * tower.getDamage();
+        }
+        if(survivorCnt > 0 & currentHealth > 0)
+            return survivorCnt;
+        return 0;
+    }
+
+    int firstAttackInd = 0;
+
+    private void primitiveAttack(World game) {
+        if(game.getCurrentTurn() % 8 == 0) {
+            attackMoney += savingMoney / (3 - firstAttackInd);
+            savingMoney -= savingMoney / (3 - firstAttackInd++);
+        }
+        ArrayList<Path> paths = game.getAttackMapPaths();
+        int pathCnt = paths.size();
+        int[] pathPoint = new int[pathCnt];
+
+        for(int i = 0; i < pathCnt; i++) {
+            ArrayList<RoadCell> roadCells = paths.get(i).getRoad();
+            pathPoint[i] = roadCells.size();
+        }
+
+        for(int j = 0; j < firstAttackInd; j++) {
+            pathPoint[bestPath] = 10000;
+            bestPath = 0;
+            bestPathThreat = 10000;
+            for (int i = 0; i < pathCnt; i++)
+                if (pathPoint[i] < bestPathThreat) {
+                    bestPath = i;
+                    bestPathThreat = pathPoint[i];
+                }
+        }
     }
 
     static int bestPath = -1, bestPathThreat = -1;
@@ -253,14 +386,14 @@ public class AI {
         int lightUnitPrice = LightUnit.INITIAL_PRICE + lightunitCnt / LightUnit.LEVEL_UP_THRESHOLD * LightUnit.PRICE_INCREASE;
         int heavyUnitPrice = HeavyUnit.INITIAL_PRICE + heavyunitCnt / HeavyUnit.LEVEL_UP_THRESHOLD * HeavyUnit.PRICE_INCREASE;
         double lightUnitPower = Math.pow(1.4, lightunitCnt / LightUnit.LEVEL_UP_THRESHOLD) * LightUnit.INITIAL_HEALTH;
-        System.out.println("light unit price " + lightUnitPrice);
+//        System.out.println("light unit price " + lightUnitPrice);
         Player myInformation = game.getMyInformation();
         ArrayList<Path> paths = game.getAttackMapPaths();
         if(bestPath == -1)
             findBestPath(game);
         int myMoney = attackMoney;
         int bestPathCanon = pathCanon[bestPath];
-        System.out.println(bestPathCanon + " --- " + (int)lightUnitPower);
+        //      System.out.println(bestPathCanon + " --- " + (int)lightUnitPower);
         if(bestPathCanon > (int)lightUnitPower)
             while(myMoney - heavyUnitPrice > 0) {
                 game.createHeavyUnit(bestPath);
