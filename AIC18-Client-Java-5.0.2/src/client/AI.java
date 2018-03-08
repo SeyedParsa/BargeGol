@@ -113,7 +113,7 @@ public class AI {
         }
     }
 
-    static int MAX_LIMIT_UNIT = 7;
+    static int MAX_LIMIT_UNIT = 6;
     static int ix[] = {0, 1, 0, -1, 0, 1, 2, 1, 0, -1, -2, -1}, iy[] = {1, 0, -1, 0, 2, 1, 0, -1, -2, -1, 0, 1};
 
 //    static int stormNeedInd = 0;
@@ -122,19 +122,43 @@ public class AI {
 
     static int usedStorms = 0;
 
+    static int minPt = MAX_LIMIT_UNIT;
+
     private void storm(World game) {
-        if (Game.INITIAL_STORMS_COUNT - usedStorms <= 0) {
-            return;
-        }
-        if (game.getCurrentTurn() > waitingForStorm) {
+        if (Game.INITIAL_STORMS_COUNT - usedStorms <= 1) {
             for (Path p : game.getDefenceMapPaths()) {
-                for (int i = p.getRoad().size() - 1; i >= p.getRoad().size() * 7 / 8; i--) {
-                    if (p.getRoad().get(i).getUnits().size() >= MAX_LIMIT_UNIT && towersAround(game, p, i - 2) < 2) {
-                        waitingForStorm *= 2;
-                        System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
-                        game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
-                        usedStorms++;
-                        return;
+                ArrayList<Unit> unitsInEnd = new ArrayList<Unit>();
+                unitsInEnd.addAll(p.getRoad().get(p.getRoad().size() - 1).getUnits());
+                unitsInEnd.addAll(p.getRoad().get(p.getRoad().size() - 2).getUnits());
+                int enemyNum = 0;
+                for (Unit u : unitsInEnd) {
+                    if (u instanceof HeavyUnit) {
+                        enemyNum += 5;
+                    } else {
+                        enemyNum++;
+                    }
+                }
+                if (enemyNum >= game.getMyInformation().getStrength()) {
+                    game.createStorm(p.getRoad().get(p.getRoad().size() - 1).getLocation().getX(), p.getRoad().get(p.getRoad().size() - 1).getLocation().getY());
+                } else {
+                    if (game.getCurrentTurn() > 500) {
+                        System.out.println("strength: " + game.getMyInformation().getStrength() + "enemies: " + enemyNum);
+                    }
+                }
+            }
+        } else {
+            if (game.getCurrentTurn() > waitingForStorm) {
+                for (Path p : game.getDefenceMapPaths()) {
+                    for (int i = p.getRoad().size() - 1; i >= p.getRoad().size() * 7 / 8; i--) {
+                        int pt = p.getRoad().get(i).getUnits().size() + (p.getRoad().get(i).getUnits().size() - MAX_LIMIT_UNIT) * 2 - towersAround(game, p, i - 2) * 2;
+                        if (pt > minPt) {
+                            waitingForStorm *= 2;
+                            System.out.println("ghazabe khoda bar: " + (p.getRoad().size() - i) + "omin ba sarbaz:" + p.getRoad().get(i).getUnits().size() + " dar " + p.getRoad().get(i).getLocation().getX() + " " + p.getRoad().get(i).getLocation().getY());
+                            game.createStorm(p.getRoad().get(i).getLocation().getX(), p.getRoad().get(i).getLocation().getY());
+                            usedStorms++;
+                            MAX_LIMIT_UNIT += MAX_LIMIT_UNIT / 2;
+                            return;
+                        }
                     }
                 }
             }
