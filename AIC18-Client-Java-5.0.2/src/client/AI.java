@@ -52,10 +52,10 @@ public class AI {
         plant(game);
     }
 
-    static int plantTime = 502;
+    static int plantTime = 501;
     private void plant(World game) {
         if (game.getCurrentTurn() >= plantTime) {
-            int plantDelay = (int) (game.getAttackMapPaths().get(erfansPath).getRoad().size() * 0.42);
+            int plantDelay = (int) (game.getAttackMapPaths().get(erfansPath).getRoad().size() * 0.28);
             ArrayList<Tower> towers = new ArrayList<Tower>();
             for (Tower t : game.getVisibleEnemyTowers()) {
                 for (RoadCell r : game.getAttackMapPaths().get(erfansPath).getRoad()) {
